@@ -192,23 +192,25 @@ public class VirusGame {
         initField();
         currentPlayer = Player.GREEN;
         printMsg(Msg.FIELD);
+        double totalSeconds = 0;
+        int turns = 0;
         while (!checkDone()){
+            turns++;
             long start = System.nanoTime();
             ArrayList<VirusMove> moveList = new ArrayList<>();
             if (canMove(moveList)) {
                 VirusMove move = strategy.get(currentPlayer).doMove(currentPlayer, playingField, moveList, fieldSize);
                 doMove(move);
+                totalSeconds += (System.nanoTime() - start) / 1_000_000_000.0;
                 printMsg(Msg.MOVE,currentPlayer,move);
                 printMsg(Msg.FIELD);
             }
             else{
                 printMsg(Msg.CANTMOVE,currentPlayer);
             }
-            long end = System.nanoTime();
-            long diff = (end - start) / 1_000_000_000;
-            System.out.println("it takes player " + currentPlayer + " " + diff +" seconds");
             switchPlayer();
         }
+        System.out.println("average time : " + totalSeconds / turns);
         Player winner = getWinner();
         printMsg(Msg.WINNER, winner, strategy.get(winner));
         return winner;
