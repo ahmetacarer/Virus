@@ -3,7 +3,7 @@ import java.util.HashMap;
 public class Main {
 
     public static void main(String[] args) {
-        GameSimulation virusGame = new GameSimulation(7);
+        VirusGame virusGame = new VirusGame(7);
         virusGame.virusSingleGame(new OptimalVirusStrategy(), new RandomVirusStrategy());
 
 //        GameSimulation game = new GameSimulation(7);

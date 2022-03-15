@@ -16,7 +16,7 @@ public class OptimalVirusStrategy implements VirusStrategy {
 
     @Override
     public String getName() {
-        return "Optimal concurrent strategy";
+        return "Optimal concurrent";
     }
 
     public VirusMove calculateBestMove(ArrayList<VirusMove> moveList, Player[][] playingField, int fieldSize) {
