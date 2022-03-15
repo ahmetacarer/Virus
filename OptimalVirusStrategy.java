@@ -6,7 +6,12 @@ public class OptimalVirusStrategy implements VirusStrategy {
 
     @Override
     public VirusMove doMove(Player currentPlayer, Player[][] playingField, ArrayList<VirusMove> moveList, int FieldSize) {
-        return calculateBestMove(moveList,playingField, FieldSize);
+        long begin = System.nanoTime();
+        VirusMove move = calculateBestMove(moveList,playingField, FieldSize);
+        long end = System.nanoTime();
+        double diffInSeconds = (end - begin) / 1_000_000_000.0;
+        System.out.println(diffInSeconds);
+        return move;
     }
 
     @Override
@@ -18,7 +23,7 @@ public class OptimalVirusStrategy implements VirusStrategy {
         // vanwege multithreading gebruik ik de gespecialiseerde concurrencyhashmap
         ConcurrentHashMap<VirusMove, Integer> virusMoveHashMap = new ConcurrentHashMap<>();
         moveList.parallelStream().forEach(virusMove ->
-                virusMoveHashMap.put(virusMove, getWins(100, virusMove, playingField, fieldSize)));
+                virusMoveHashMap.put(virusMove, getWins(50, virusMove, playingField, fieldSize)));
         return Collections.max(virusMoveHashMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
     }
 
