@@ -129,6 +129,7 @@ public class GameSimulation {
     }
 
     public Player game(HashMap<Player, VirusStrategy> strategy, Player[][] field){
+        setField(field);
         return getTurn(strategy);
     }
 

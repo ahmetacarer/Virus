@@ -1,80 +1,43 @@
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OptimalVirusStrategy implements VirusStrategy {
 
-
     @Override
     public VirusMove doMove(Player currentPlayer, Player[][] playingField, ArrayList<VirusMove> moveList, int FieldSize) {
-        return calculateBestMove2(moveList,playingField, FieldSize);
+        return calculateBestMove(moveList,playingField, FieldSize);
     }
 
     @Override
     public String getName() {
-        return "Optimal Algorithm";
+        return "Optimal concurrent strategy";
     }
 
-//    public VirusMove calculateBestMove(ArrayList<VirusMove> moveList, Player[][] playingField, int fieldSize) {
-//        VirusMove bestMove = moveList.get(0);
-//        int mostWins = 0;
-//        for (VirusMove virusMove :
-//             moveList) {
-//            int wins = getWins(50, virusMove, playingField, fieldSize);
-//            if (wins > mostWins)
-//            {
-//                bestMove = virusMove;
-//                mostWins = wins;
-//            }
-//        }
-//        return bestMove;
-//    }
-
-    public VirusMove calculateBestMove2(ArrayList<VirusMove> moveList, Player[][] playingField, int fieldSize) {
+    public VirusMove calculateBestMove(ArrayList<VirusMove> moveList, Player[][] playingField, int fieldSize) {
         // vanwege multithreading gebruik ik de gespecialiseerde concurrencyhashmap
-        // ? is een hashmap wel nodig?
-        // todo: wellicht de hashmap vervangen
         ConcurrentHashMap<VirusMove, Integer> virusMoveHashMap = new ConcurrentHashMap<>();
-        ArrayList<Thread> threads = new ArrayList<>();
-        for (VirusMove virusMove:
-             moveList) {
-            // maakt een nieuwe thread aan die de hashmap moet vullen met het aantal wins.
-            Thread thread = new Thread(){
-                public void run(){
-                    virusMoveHashMap.put(virusMove, getWins(200, virusMove, playingField, fieldSize));
-                }};
-            thread.start();
-            threads.add(thread);
-        }
-        // Er moet gewacht worden op alle threads voordat er naar de meeste wins gekeken kan worden
-        threads.forEach(t -> {
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
+        moveList.parallelStream().forEach(virusMove ->
+                virusMoveHashMap.put(virusMove, getWins(100, virusMove, playingField, fieldSize)));
         return Collections.max(virusMoveHashMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
     }
 
-    // simulate numberOfGames and wins
     public int getWins(int numberOfGames, VirusMove  virusMove, Player[][] playingField, int fieldSize) {
-        // todo: Hier kan ook multithreading worden toegepast.
-        int wins = 0;
-        GameSimulation simulation = new GameSimulation(fieldSize);
+        AtomicInteger wins = new AtomicInteger();
         Player player = playingField[virusMove.from.x][virusMove.from.y] == Player.GREEN ? Player.GREEN : Player.RED;
         Player enemy = player == Player.GREEN ? Player.RED : Player.GREEN;
         HashMap<Player,VirusStrategy> strategy = new HashMap<>();
         strategy.put(player, new RandomVirusStrategy());
         strategy.put(enemy, new RandomVirusStrategy());
-
-        for (int i = 0; i < numberOfGames; i++) {
-            simulation.setField(playingField);
+        List<GameSimulation> values = new ArrayList<GameSimulation>();
+        for (int i = 0; i < numberOfGames; i++)
+            values.add(new GameSimulation(fieldSize));
+        values.parallelStream().forEach(simulation -> {
             simulation.doMove(virusMove);
             Player winner = simulation.game(strategy);
-            if (player == winner) wins++;
-        }
-        return wins;
+            if (player == winner) wins.getAndIncrement();
+        });
+        return wins.get();
     }
+
 }
