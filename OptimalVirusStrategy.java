@@ -39,13 +39,15 @@ public class OptimalVirusStrategy implements VirusStrategy {
         ArrayList<Thread> threads = new ArrayList<>();
         for (VirusMove virusMove:
              moveList) {
+            // maakt een nieuwe thread aan die de hashmap moet vullen met het aantal wins.
             Thread thread = new Thread(){
                 public void run(){
-                    virusMoveHashMap.put(virusMove, getWins(50, virusMove, playingField, fieldSize));
+                    virusMoveHashMap.put(virusMove, getWins(200, virusMove, playingField, fieldSize));
                 }};
             thread.start();
             threads.add(thread);
         }
+        // Er moet gewacht worden op alle threads voordat er naar de meeste wins gekeken kan worden
         threads.forEach(t -> {
             try {
                 t.join();
@@ -58,6 +60,7 @@ public class OptimalVirusStrategy implements VirusStrategy {
 
     // simulate numberOfGames and wins
     public int getWins(int numberOfGames, VirusMove  virusMove, Player[][] playingField, int fieldSize) {
+        // todo: Hier kan ook multithreading worden toegepast.
         int wins = 0;
         GameSimulation simulation = new GameSimulation(fieldSize);
         Player player = playingField[virusMove.from.x][virusMove.from.y] == Player.GREEN ? Player.GREEN : Player.RED;
