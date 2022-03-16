@@ -1,6 +1,8 @@
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class OptimalVirusStrategy implements VirusStrategy {
 
@@ -22,8 +24,10 @@ public class OptimalVirusStrategy implements VirusStrategy {
     public VirusMove calculateBestMove(ArrayList<VirusMove> moveList, Player[][] playingField, int fieldSize) {
         // vanwege multithreading gebruik ik de gespecialiseerde concurrencyhashmap
         ConcurrentHashMap<VirusMove, Integer> virusMoveHashMap = new ConcurrentHashMap<>();
-        moveList.parallelStream().forEach(virusMove ->
-                virusMoveHashMap.put(virusMove, getWins(50, virusMove, playingField, fieldSize)));
+        moveList
+                // .parallelStream()
+                .forEach(virusMove ->
+                virusMoveHashMap.put(virusMove, getWins(500, virusMove, playingField, fieldSize)));
         return Collections.max(virusMoveHashMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
     }
 
@@ -35,13 +39,17 @@ public class OptimalVirusStrategy implements VirusStrategy {
         strategy.put(player, new RandomVirusStrategy());
         strategy.put(enemy, new RandomVirusStrategy());
         List<GameSimulation> values = new ArrayList<GameSimulation>();
-        for (int i = 0; i < numberOfGames; i++)
-            values.add(new GameSimulation(fieldSize));
-        values.parallelStream().forEach(simulation -> {
-            simulation.doMove(virusMove);
-            Player winner = simulation.game(strategy);
-            if (player == winner) wins.getAndIncrement();
-        });
+        IntStream.range(0, numberOfGames)
+                .boxed()
+                .collect(Collectors.toList())
+                .parallelStream()
+                .forEach(num -> {
+                    GameSimulation simulation = new GameSimulation(fieldSize);
+                    simulation.setField(playingField);
+                    simulation.doMove(virusMove);
+                    Player winner = simulation.getTurn(strategy);
+                    if (player == winner) wins.getAndIncrement();
+                });
         return wins.get();
     }
 

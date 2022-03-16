@@ -29,6 +29,7 @@ public class VirusGame {
         printMsg(msg, player, null, strategy);
     }
     private void printMsg(Msg msg, Player player, VirusMove move, VirusStrategy strategy){
+        if (true) return;
         PrintStream to;
         String playerText = "Red";
         if (player == Player.GREEN){

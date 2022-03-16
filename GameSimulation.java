@@ -139,7 +139,7 @@ public class GameSimulation {
         }
     }
 
-    private Player getTurn(HashMap<Player, VirusStrategy> strategy) {
+    public Player getTurn(HashMap<Player, VirusStrategy> strategy) {
         currentPlayer = Player.GREEN;
         while (!checkDone()){
             ArrayList<VirusMove> moveList = new ArrayList<>();
